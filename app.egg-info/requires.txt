@@ -1,0 +1,4 @@
+huggingface_hub>=0.20.0
+mcp[cli]>=1.8.0
+prompt-toolkit>=3.0.51
+python-dotenv>=1.1.0
