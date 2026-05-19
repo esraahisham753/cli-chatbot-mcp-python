@@ -34,6 +34,45 @@ class ToolManager:
         return None
 
     @classmethod
+    async def execute_tool(
+        cls, clients: dict[str, MCPClient], tool_name: str, tool_input: dict
+    ) -> dict:
+        """Executes a single tool request against the provided clients."""
+        client = await cls._find_client_with_tool(list(clients.values()), tool_name)
+
+        if not client:
+            return {
+                "tool": tool_name,
+                "input": tool_input,
+                "content": json.dumps({"error": "Could not find that tool"}),
+                "is_error": True,
+            }
+
+        try:
+            tool_output: CallToolResult | None = await client.call_tool(
+                tool_name, tool_input
+            )
+            items = tool_output.content if tool_output else []
+            content_list = [
+                item.text for item in items if isinstance(item, TextContent)
+            ]
+            return {
+                "tool": tool_name,
+                "input": tool_input,
+                "content": json.dumps(content_list),
+                "is_error": bool(tool_output and tool_output.isError),
+            }
+        except Exception as e:
+            error_message = f"Error executing tool '{tool_name}': {e}"
+            print(error_message)
+            return {
+                "tool": tool_name,
+                "input": tool_input,
+                "content": json.dumps({"error": error_message}),
+                "is_error": True,
+            }
+
+    @classmethod
     def _build_tool_result_part(
         cls,
         tool_use_id: str,
@@ -62,45 +101,12 @@ class ToolManager:
             tool_name = tool_request.name
             tool_input = tool_request.input
 
-            client = await cls._find_client_with_tool(
-                list(clients.values()), tool_name
+            result = await cls.execute_tool(clients, tool_name, tool_input)
+            tool_result_part = cls._build_tool_result_part(
+                tool_use_id,
+                result["content"],
+                "error" if result["is_error"] else "success",
             )
-
-            if not client:
-                tool_result_part = cls._build_tool_result_part(
-                    tool_use_id, "Could not find that tool", "error"
-                )
-                tool_result_blocks.append(tool_result_part)
-                continue
-
-            try:
-                tool_output: CallToolResult | None = await client.call_tool(
-                    tool_name, tool_input
-                )
-                items = []
-                if tool_output:
-                    items = tool_output.content
-                content_list = [
-                    item.text for item in items if isinstance(item, TextContent)
-                ]
-                content_json = json.dumps(content_list)
-                tool_result_part = cls._build_tool_result_part(
-                    tool_use_id,
-                    content_json,
-                    "error"
-                    if tool_output and tool_output.isError
-                    else "success",
-                )
-            except Exception as e:
-                error_message = f"Error executing tool '{tool_name}': {e}"
-                print(error_message)
-                tool_result_part = cls._build_tool_result_part(
-                    tool_use_id,
-                    json.dumps({"error": error_message}),
-                    "error"
-                    if tool_output and tool_output.isError
-                    else "success",
-                )
 
             tool_result_blocks.append(tool_result_part)
         return tool_result_blocks
