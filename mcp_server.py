@@ -12,6 +12,8 @@ docs = {
     "spec.txt": "These specifications define the technical requirements for the equipment.",
 }
 
+# tools
+
 @mcp.tool(
     name="read_doc",
     description="Reads the content of the provided doc id"
@@ -38,6 +40,24 @@ def edit_doc(
     
     docs[doc_id] = docs[doc_id].replace(old_string, new_string)
 
+# resources
+
+@mcp.resource(
+    "docs://documents/",
+    mime_type="application/json"
+)
+def list_documents() -> list[str]:
+    return list(docs.keys());
+
+@mcp.resource(
+    "docs://documents/{doc_id}/",
+    mime_type="text/plain"
+)
+def fetch_doc(doc_id:str) -> str:
+    if doc_id not in docs:
+        raise ValueError(f"Doc with id {doc_id} not found")
+    
+    return docs[doc_id]
 
 
 if __name__ == "__main__":
