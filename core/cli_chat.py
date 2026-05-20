@@ -21,10 +21,10 @@ class CliChat(Chat):
         return await self.doc_client.list_prompts()
 
     async def list_docs_ids(self) -> list[str]:
-        return await self.doc_client.read_resource("docs://documents")
+        return await self.doc_client.read_resource("docs://documents/")
 
     async def get_doc_content(self, doc_id: str) -> str:
-        return await self.doc_client.read_resource(f"docs://documents/{doc_id}")
+        return await self.doc_client.read_resource(f"docs://documents/{doc_id}/")
 
     async def get_prompt(
         self, command: str, doc_id: str
@@ -81,7 +81,7 @@ class CliChat(Chat):
         Note the user's query might contain references to documents like "@report.docx". The "@" is only
         included as a way of mentioning the doc. The actual name of the document would be "report.docx".
         If the document content is included in this prompt, you don't need to use an additional tool to read the document.
-        Answer the user's question directly and concisely. Start with the exact information they need. 
+        Answer in your own words. Do not copy document text verbatim unless the user asks for the exact text.. Start with the exact information they need. 
         Don't refer to or mention the provided context in any way - just use it to inform your answer.
         """
 
