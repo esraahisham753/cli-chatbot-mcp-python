@@ -56,10 +56,14 @@ class MCPClient:
         return result
 
     async def list_prompts(self) -> list[types.Prompt]:
-        return []
+        result = await self.session().list_prompts()
+        
+        return result.prompts 
 
     async def get_prompt(self, prompt_name, args: dict[str, str]):
-        return []
+        result = await self.session().get_prompt(prompt_name, args)
+        
+        return result.messages
 
     async def read_resource(self, uri: str) -> Any:
         result = await self.session().read_resource(AnyUrl(uri))

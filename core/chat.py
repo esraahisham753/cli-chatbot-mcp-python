@@ -107,10 +107,11 @@ class Chat:
                 tool_desc += f"  Input schema: {tool['input_schema']}\n"
             base_prompt += tool_desc
         
-        base_prompt += "\nYou can reference these tools in your responses if needed."
+        base_prompt += "\nUse these tools when the user's request requires reading or changing external data."
         base_prompt += (
             '\n\nTo use a tool, write exactly one or more calls in this format: '
             '@tool_name({"argument": "value"}). After the tool result is provided, '
-            "answer the user with the result instead of repeating the tool call."
+            "answer the user with the result instead of repeating the tool call. "
+            "When a prompt provides all required tool arguments, do not ask the user for them again."
         )
         return base_prompt
